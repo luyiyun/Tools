@@ -1,4 +1,5 @@
 .*
+**
 !.gitignore
-*.ipynb
-**/__pycache__/
+!ipynb2md.py
+!replace_md_imgpath.py

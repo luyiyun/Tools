@@ -24,9 +24,10 @@ def replace_md_imgpath(ori_md, target_md, new_image_root, depth):
 
 def main():
     parser = ArgumentParser()
-    parser.add_argument("fn")
-    parser.add_argument("image_root")
-    parser.add_argument("-d", "--depth", default=-2, type=int)
+    parser.add_argument("fn", help="md filename")
+    parser.add_argument("image_root", help="replaced image root path")
+    parser.add_argument("-d", "--depth", default=-2, type=int,
+                        help="replace depth")
     args = parser.parse_args()
 
     assert args.fn.endswith(".md")

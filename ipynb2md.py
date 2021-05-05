@@ -199,8 +199,8 @@ def parse_code_cell(writer, cell, img_path):
     # TODO: 图片大小
 
 
-def ipynb2markdown(ipynb_fn, md_fn, img_root):
-    img_path = img_root.rstrip("/\\") + "/" + os.path.basename(ipynb_fn)[:-6]
+def ipynb2markdown(ipynb_fn, md_fn, img_path):
+    # img_path = img_root.rstrip("/\\") + "/" + os.path.basename(ipynb_fn)[:-6]
     os.makedirs(img_path, exist_ok=True)
     # 读取内容
     with open(ipynb_fn, "r") as f:
@@ -225,19 +225,25 @@ def ipynb2markdown(ipynb_fn, md_fn, img_root):
 def main():
     parser = ArgumentParser()
     parser.add_argument("fn")
-    parser.add_argument("-t", "--to", default=None)
-    parser.add_argument("--image_root", default=None)
+    parser.add_argument(
+        "-t", "--to", default=None,
+        help="The target filename, default is fn.md"
+    )
+    parser.add_argument(
+        "--image_path", default=None,
+        help="The path contain images"
+    )
     args = parser.parse_args()
 
-    assert args.fn.endswith(".ipynb")
     if args.to is None:
         args.to = args.fn[:-6] + ".md"
-    if args.image_root is None:
-        args.image_root = os.path.dirname(args.fn)
-        if not args.image_root:  # 空字符串
-            args.image_root = "."
+    if args.image_path is None:
+        args.image_path = args.to[:-3]
 
-    ipynb2markdown(args.fn, args.to, args.image_root)
+    assert args.fn.endswith(".ipynb")
+    assert args.to.endswith(".md")
+
+    ipynb2markdown(args.fn, args.to, args.image_path)
 
 
 if __name__ == "__main__":
