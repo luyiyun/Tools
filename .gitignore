@@ -3,3 +3,4 @@
 !.gitignore
 !ipynb2md.py
 !replace_md_imgpath.py
+!readme.md
