@@ -3,4 +3,5 @@
 !.gitignore
 !ipynb2md.py
 !replace_md_imgpath.py
+!download_vsix.py
 !readme.md
