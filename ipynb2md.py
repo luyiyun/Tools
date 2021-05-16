@@ -88,6 +88,7 @@ ipynb是一个json文件，所以其内容就是嵌套的键值对。
 
 
 import os
+import re
 import json
 import base64
 from argparse import ArgumentParser
@@ -95,6 +96,14 @@ from argparse import ArgumentParser
 
 MD_LIST_PREFIX = ("* ", "- ")
 OUTPUT_PREFIX = "#> "
+# https://stackoverflow.com/questions/14693701/how-can-i-remove-the-ansi-escape-sequences-from-a-string-in-python
+ANSI_COLOR_PATTERN = re.compile(r'''
+    \x1b    # ESC
+    [@-_]   # 7-bit C1 Fe
+    [0-?]*  # Parameter bytes
+    [ -/]*  # Intermediate bytes
+    [@-~]   # Final byte
+''', re.VERBOSE)
 img_id = 0
 
 
@@ -106,6 +115,10 @@ def save_png(data, fn):
 def write_stream_line(writer, line):
     for ll in line.split("\n"):
         writer.write("%s%s\n" % (OUTPUT_PREFIX, ll))
+
+
+def remove_ansi_color(line):
+    return ANSI_COLOR_PATTERN.sub("", line)
 
 
 def parse_md_raw_cell(writer, cell, img_path):
@@ -152,14 +165,20 @@ def parse_code_cell(writer, cell, img_path):
     for output in cell["outputs"]:
         # 使用`print`或`!cat`等的输出，其output_type为stream，name是stdout
         if output["output_type"] == "stream":
-            if output["name"] == "stdout":
-                for line in output["text"]:
-                    # steam的输出有可能将多行以一个字符串的形式保存
-                    # 这时候需要特殊处理，才能让每一行前面都有#>
-                    write_stream_line(writer, line)
-            else:
-                print(output["name"])
-                raise NotImplementedError
+            # if output["name"] == "stdout":
+            # 这里可能会出现各种形式的输出，这里全部打印处理
+            # 有时候并不是error，但也按error处理（比如运行?func产生的帮助文档）。
+            # 索性全部都按文本处理
+            for line in output["text"]:
+                # steam的输出有可能将多行以一个字符串的形式保存
+                # 这时候需要特殊处理，才能让每一行前面都有#>
+                if "\x1b[" in line:
+                    line = remove_ansi_color(line)
+                write_stream_line(writer, line)
+            # else:
+            #     import ipdb; ipdb.set_trace()
+            #     print(output["name"])
+            #     raise NotImplementedError
         # 直接运行代码或使用plt.show()的结果
         elif output["output_type"] in ["display_data", "execute_result"]:
             output_data = output["data"]
